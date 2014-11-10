@@ -1,0 +1,114 @@
+\documentclass[a4paper]{article}
+\usepackage{xeCJK}
+
+\usepackage{geometry}
+\geometry{left=3.2cm,right=3.2cm,top=3.2cm,bottom=3.2cm}
+
+\setCJKmainfont{SimSun}
+\linespread{1.3}
+
+\usepackage{listings} 
+
+\usepackage{indentfirst}
+\setlength{\parindent}{2em} 
+
+\newcommand{\titlefont}{\fontsize{14pt}{\baselineskip}\selectfont}
+\newcommand{\docfont}{\fontsize{12pt}{\baselineskip}\selectfont}
+\newcommand{\tablefont}{\fontsize{8pt}{\baselineskip}\selectfont}
+
+\usepackage{float}
+\usepackage{graphicx}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy} \lhead{Laboratory 4 LC-2K Finite State Machine Simulator}\rhead{\thepage}
+\author{13349047 计科一班 赖少凡}
+\title{LC-2K Finite State Machine Simulator}
+
+\begin{document}
+
+\titlefont
+\begin{center}
+LC-2K Finite State Machine Simulator\\
+\tablefont
+\docfont
+13349047~~~Computer Science~~~赖少凡\\
+Email:Laishao\_yuan\@163.com 
+Phone:18819461573（Short:61573）
+\end{center}
+
+\section{Basic design}
+	Several blocks of the simulator:
+	\begin{itemize}
+		\item fetch block
+			\begin{itemize}
+				\item fetch: PC=PC+1 and load the instrReg
+				\item fetch\_delay: wait for the clock
+	    	 	  \end{itemize}
+	    	\item branch: acts as the controler
+	    	\item add
+	    		\begin{itemize}
+	    			\item add: load regA to ALU Operand
+	    			\item add\_calc: load regB to bus and calculate the RegA+RegB
+	    			\item add\_done: store the result into regDest
+	    		\end{itemize}
+	    	\item nand, nand\_calc, nand\_done: the same as add block
+	    	\item lw
+	    		\begin{itemize}
+	    			\item lw: load the regA to ALU Operand
+	    			\item lw\_addr: calculate the sum of regA and offset
+	    			\item lw\_read: ready to read the Memory
+	    			\item lw\_read\_delay: wait for the clock and store it into regB
+	    		\end{itemize}
+	    	\item sw, sw\_addr, sw\_write, sw\_write, sw\_write\_delay: the same as lw block
+	    	\item beq
+	    		\begin{itemize}
+	    			\item beq: load the regA to ALU Operand
+	    			\item beq\_calc: calculate the difference between regA and regB
+	    			\item beq\_judge: jump according to (regA == regB)
+	    			\item beq\_addr: calculate the address
+	    			\item beq\_pc: set the PC
+	    		\end{itemize}
+	    	\item jalr
+	    		\begin{itemize}
+	    			\item jalr: regB = PC
+	    			\item jalr\_a: PC = regA
+	    		\end{itemize}
+	    	\item halt: return
+	    	\item noop: goto fetch
+	\end{itemize}
+\section{Optimize}
+	To simplify the project, I use some macros:
+	\begin{itemize}
+		\item \begin{verbatim}
+			define __STATE__(type) type: printState(&state, #type);
+		\end{verbatim}
+		\item \begin{verbatim}
+		define _READMEM() memoryAccess(&state, 1)
+		\end{verbatim}
+		\item \begin{verbatim}
+		define _WRITEMEM() memoryAccess(&state, 0)
+		\end{verbatim}
+		\item \begin{verbatim}#define _DISPATCH(opcode, label) if (((state.instrReg >> 22) 
+		\end{verbatim}
+		\begin{verbatim}
+		 & 0x7) == opcode) goto label
+		\end{verbatim}
+		\item \begin{verbatim}
+		define _REG_A state.reg[(state.instrReg >> 19) & 0x7]
+		\end{verbatim}
+
+		\item \begin{verbatim}
+		#define _REG_B state.reg[(state.instrReg >> 16) & 0x7]
+\end{verbatim}				
+		\item \begin{verbatim}
+		#define _REG_DEST state.reg[state.instrReg & 0x7]
+\end{verbatim}						
+		\item \begin{verbatim}
+		#define _OFFSET convertNum(state.instrReg & 0x0000ffff)
+\end{verbatim}				
+	\end{itemize}\par
+	Those optimization is all following the 10 rules given by the documentation.
+	
+\section{Result}
+	The simulator is working as well as the simluator in the lab 02.
+\end{document}
